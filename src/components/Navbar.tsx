@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Avatar from './Avatar'
 
 interface NavbarProps {
@@ -13,6 +13,16 @@ interface NavbarProps {
 export default function Navbar({ groupName, groupId }: NavbarProps) {
   const { data: session } = useSession()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [avatar, setAvatar] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetch('/api/me')
+        .then((r) => r.json())
+        .then((data) => setAvatar(data.avatar || null))
+        .catch(() => {})
+    }
+  }, [session?.user?.id])
 
   return (
     <nav className="bg-slate-900/95 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
@@ -53,7 +63,7 @@ export default function Navbar({ groupName, groupId }: NavbarProps) {
             >
               <Avatar
                 name={session.user.name || 'User'}
-                avatar={session.user.avatar}
+                avatar={avatar}
                 size={32}
               />
               <span className="text-sm text-slate-300 hidden sm:block max-w-[120px] truncate">
