@@ -50,19 +50,22 @@ export default function QRModal({ inviteCode, groupName, onClose }: QRModalProps
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-full flex items-center justify-between">
-          <h2 className="text-white font-semibold text-lg">Share Group</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <div>
+            <h2 className="text-white font-semibold text-lg">Add Members</h2>
+            <p className="text-slate-400 text-xs mt-0.5">Scan the QR or share the link</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl p-4">
+        <div className="bg-white rounded-2xl p-5 shadow-lg">
           <QRCodeSVG
             id="qr-svg"
             value={url}
-            size={220}
+            size={210}
             bgColor="#ffffff"
             fgColor="#0f172a"
             level="M"
@@ -70,22 +73,27 @@ export default function QRModal({ inviteCode, groupName, onClose }: QRModalProps
         </div>
 
         <div className="text-center">
-          <p className="text-white font-medium">{groupName}</p>
-          <p className="text-slate-400 text-sm mt-1">Anyone with this QR can join</p>
+          <p className="text-white font-semibold">{groupName}</p>
+          <p className="text-slate-500 text-xs mt-1 font-mono truncate max-w-[240px]">{url.replace('https://', '')}</p>
         </div>
 
-        <div className="w-full flex gap-3">
+        <div className="w-full flex flex-col gap-2">
           <button
-            onClick={() => { navigator.clipboard.writeText(url) }}
-            className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium transition-colors"
+            onClick={() => {
+              navigator.clipboard.writeText(url)
+            }}
+            className="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
           >
-            Copy Link
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            Copy invite link
           </button>
           <button
             onClick={handleDownload}
-            className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-sm font-medium transition-colors"
+            className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium transition-colors"
           >
-            Save Image
+            Save QR as image
           </button>
         </div>
       </div>
