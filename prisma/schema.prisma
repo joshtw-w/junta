@@ -16,6 +16,7 @@ model User {
   createdAt DateTime      @default(now())
   groups    GroupMember[]
   posts     Post[]
+  visits    Visit[]
 }
 
 model Group {
@@ -61,4 +62,16 @@ model Post {
   group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   place     Place    @relation(fields: [placeId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
+  visits    Visit[]
+}
+
+model Visit {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
 }

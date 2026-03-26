@@ -27,6 +27,7 @@ interface PostCardProps {
   post: Post
   onClick: () => void
   isCurrentUser: boolean
+  isVisited?: boolean
 }
 
 // Deterministic gradient per place name so placeholders are colorful
@@ -45,7 +46,7 @@ function gradientFor(name: string): string {
   return GRADIENTS[Math.abs(hash) % GRADIENTS.length]
 }
 
-export default function PostCard({ post, onClick, isCurrentUser }: PostCardProps) {
+export default function PostCard({ post, onClick, isCurrentUser, isVisited }: PostCardProps) {
   const { place, user, note } = post
   const gradient = gradientFor(place.name)
 
@@ -67,6 +68,14 @@ export default function PostCard({ post, onClick, isCurrentUser }: PostCardProps
             />
             {/* Gradient overlay — always present so text is readable */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            {/* Visited badge */}
+            {isVisited && (
+              <div className="absolute top-2 right-2 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
           </>
         ) : (
           <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}>

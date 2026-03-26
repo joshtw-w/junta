@@ -34,7 +34,21 @@ interface Post {
 interface AddPostModalProps {
   groupId: string
   onClose: () => void
-  onPostAdded: (post: Post) => void
+  onPostAdded: (post: {
+    id: string
+    note: string | null
+    createdAt: string
+    place: {
+      id: string
+      name: string
+      address: string
+      lat: number
+      lng: number
+      imageUrl: string | null
+      googlePlaceId: string | null
+    }
+    user: { id: string; name: string; avatar: string | null }
+  }) => void
 }
 
 export default function AddPostModal({ groupId, onClose, onPostAdded }: AddPostModalProps) {
