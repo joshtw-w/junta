@@ -400,7 +400,7 @@ export default function GroupFeedPage() {
 
       {/* Main content */}
       {viewMode === 'map' ? (
-        <div className="flex-1">
+        <div style={{ height: 'calc(100dvh - 148px)', minHeight: '400px' }}>
           <MapView posts={posts} />
         </div>
       ) : (
