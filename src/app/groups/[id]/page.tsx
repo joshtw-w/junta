@@ -313,79 +313,37 @@ export default function GroupFeedPage() {
 
       {/* Sticky sub-header */}
       <div className="sticky top-16 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800">
-        <div className="max-w-2xl mx-auto px-3 py-2.5 flex items-center justify-between gap-2">
+        {/* Row 1: members + view toggle + add */}
+        <div className="max-w-2xl mx-auto px-3 py-2.5 flex items-center justify-between gap-3">
           {/* Left: avatars + count */}
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex -space-x-1.5">
-              {group.members.slice(0, 4).map((m) => (
+              {group.members.slice(0, 5).map((m) => (
                 <div key={m.userId} className="border-2 border-slate-900 rounded-full">
-                  <Avatar name={m.user.name} avatar={m.user.avatar} size={22} />
+                  <Avatar name={m.user.name} avatar={m.user.avatar} size={24} />
                 </div>
               ))}
             </div>
-            <span className="text-xs text-slate-500 hidden sm:block truncate">
-              {group._count.members} · {posts.length} places
+            <span className="text-xs text-slate-500 truncate">
+              {group._count.members} member{group._count.members !== 1 ? 's' : ''} · {posts.length} places
             </span>
           </div>
 
-          {/* Right: all controls */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {/* Feed / Map toggle */}
+          {/* Right: view toggle + add */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <div className="flex items-center bg-slate-800 rounded-xl p-0.5 border border-slate-700">
               <button
                 onClick={() => setViewMode('feed')}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${viewMode === 'feed' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${viewMode === 'feed' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
               >Feed</button>
               <button
                 onClick={() => setViewMode('map')}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${viewMode === 'map' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${viewMode === 'map' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
               >Map</button>
             </div>
-
-            {/* Tonight filter */}
-            <button
-              onClick={() => setTonightMode(!tonightMode)}
-              title="Tonight mode — show want-to-go places"
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors ${tonightMode ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'border-slate-700 text-slate-400 hover:text-white'}`}
-            >🌙</button>
-
-            {/* Pick for me */}
-            <button
-              onClick={pickForMe}
-              title="Pick a place for me"
-              disabled={posts.length === 0}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-medium border border-slate-700 text-slate-400 hover:text-white transition-colors disabled:opacity-40"
-            >🎲</button>
-
-            {/* Nearby */}
-            <button
-              onClick={() => setShowNearby(true)}
-              title="Nearby places"
-              className="px-2.5 py-1.5 rounded-xl text-xs font-medium border border-slate-700 text-slate-400 hover:text-white transition-colors"
-            >📍</button>
-
-            {/* Leaderboard */}
-            <button
-              onClick={() => setShowLeaderboard(true)}
-              title="Leaderboard"
-              className="px-2.5 py-1.5 rounded-xl text-xs font-medium border border-slate-700 text-slate-400 hover:text-white transition-colors"
-            >🏆</button>
-
-            {/* QR invite */}
-            <button
-              onClick={() => setShowQR(true)}
-              title="QR code invite"
-              className="px-2.5 py-1.5 rounded-xl text-xs font-medium border border-slate-700 text-slate-400 hover:text-white transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-              </svg>
-            </button>
-
-            {/* Add place */}
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-semibold transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -395,10 +353,37 @@ export default function GroupFeedPage() {
           </div>
         </div>
 
+        {/* Row 2: action strip — horizontal scroll */}
+        <div className="max-w-2xl mx-auto border-t border-slate-800/60">
+          <div className="flex items-center gap-2 px-3 py-2 overflow-x-auto scrollbar-none">
+            <button
+              onClick={() => setTonightMode(!tonightMode)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap flex-shrink-0 transition-colors ${tonightMode ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'}`}
+            >🌙 Tonight</button>
+            <button
+              onClick={pickForMe}
+              disabled={posts.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 whitespace-nowrap flex-shrink-0 transition-colors disabled:opacity-40"
+            >🎲 Pick for me</button>
+            <button
+              onClick={() => setShowNearby(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 whitespace-nowrap flex-shrink-0 transition-colors"
+            >📍 Nearby</button>
+            <button
+              onClick={() => setShowLeaderboard(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 whitespace-nowrap flex-shrink-0 transition-colors"
+            >🏆 Leaderboard</button>
+            <button
+              onClick={() => setShowQR(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 whitespace-nowrap flex-shrink-0 transition-colors"
+            >⬛ Share QR</button>
+          </div>
+        </div>
+
         {/* Tonight mode banner */}
         {tonightMode && (
-          <div className="bg-amber-500/10 border-t border-amber-500/20 px-4 py-2 flex items-center gap-2">
-            <span className="text-amber-400 text-xs font-medium">🌙 Tonight mode — showing {filteredPosts.length} want-to-go place{filteredPosts.length !== 1 ? 's' : ''}</span>
+          <div className="bg-amber-500/10 border-t border-amber-500/20 px-4 py-1.5">
+            <span className="text-amber-400 text-xs font-medium">🌙 Showing {filteredPosts.length} want-to-go place{filteredPosts.length !== 1 ? 's' : ''}</span>
           </div>
         )}
       </div>
