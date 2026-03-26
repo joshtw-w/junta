@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function HomePage() {
+function HomePageInner() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -333,5 +333,17 @@ export default function HomePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <HomePageInner />
+    </Suspense>
   )
 }
