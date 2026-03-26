@@ -40,6 +40,8 @@ model GroupMember {
   group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
+  @@index([groupId])
+  @@index([userId])
 }
 
 model Place {
@@ -65,6 +67,9 @@ model Post {
   user      User     @relation(fields: [userId], references: [id])
   visits    Visit[]
   votes     Vote[]
+
+  @@index([groupId, createdAt(sort: Desc)])
+  @@index([userId])
 }
 
 model Vote {
@@ -76,6 +81,7 @@ model Vote {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+  @@index([postId])
 }
 
 model Visit {
@@ -87,4 +93,6 @@ model Visit {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
 }

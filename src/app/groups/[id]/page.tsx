@@ -77,6 +77,9 @@ export default function GroupFeedPage() {
   const [photoIndex, setPhotoIndex] = useState(0)
   const [loadingPhotos, setLoadingPhotos] = useState(false)
 
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
+
   const fetchData = useCallback(async () => {
     try {
       const [groupRes, postsRes, visitsRes, votesRes] = await Promise.all([
@@ -86,7 +89,11 @@ export default function GroupFeedPage() {
         fetch(`/api/votes?groupId=${id}`),
       ])
       if (groupRes.ok) setGroup(await groupRes.json())
-      if (postsRes.ok) setPosts(await postsRes.json())
+      if (postsRes.ok) {
+        const data = await postsRes.json()
+        setPosts(data.posts)
+        setNextCursor(data.nextCursor)
+      }
       if (visitsRes.ok) {
         const ids: string[] = await visitsRes.json()
         setVisitedIds(new Set(ids))
@@ -98,6 +105,23 @@ export default function GroupFeedPage() {
       setIsLoading(false)
     }
   }, [id])
+
+  const loadMore = async () => {
+    if (!nextCursor || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const res = await fetch(`/api/groups/${id}/posts?cursor=${nextCursor}`)
+      if (res.ok) {
+        const data = await res.json()
+        setPosts((prev) => [...prev, ...data.posts])
+        setNextCursor(data.nextCursor)
+      }
+    } catch (err) {
+      console.error('Failed to load more posts:', err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -218,7 +242,7 @@ export default function GroupFeedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-slate-900 flex flex-col">
       <Navbar groupName={group.name} groupId={id} />
 
       {/* Sticky sub-header */}
@@ -275,7 +299,7 @@ export default function GroupFeedPage() {
 
       {/* Main content */}
       {viewMode === 'map' ? (
-        <div style={{ height: 'calc(100vh - 116px)' }}>
+        <div className="flex-1">
           <MapView posts={posts} />
         </div>
       ) : (
@@ -309,6 +333,17 @@ export default function GroupFeedPage() {
                 </div>
               ))}
             </div>
+            {nextCursor && (
+              <div className="flex justify-center py-6">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  {loadingMore ? 'Loading...' : 'Load more'}
+                </button>
+              </div>
+            )}
           )}
         </main>
       )}

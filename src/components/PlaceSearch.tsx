@@ -122,7 +122,7 @@ export default function PlaceSearch({ onSelect, placeholder = 'Search for a rest
 
       {/* Dropdown results */}
       {showDropdown && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-xl overflow-hidden max-h-[50vh] overflow-y-auto">
           {results.map((place) => (
             <button
               key={place.placeId}

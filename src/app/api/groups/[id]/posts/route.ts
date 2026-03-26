@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+const PAGE_SIZE = 50
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -29,6 +31,8 @@ export async function GET(
     )
   }
 
+  const cursor = request.nextUrl.searchParams.get('cursor')
+
   const posts = await prisma.post.findMany({
     where: { groupId: params.id },
     include: {
@@ -44,9 +48,15 @@ export async function GET(
     orderBy: {
       createdAt: 'desc',
     },
+    take: PAGE_SIZE + 1,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
   })
 
-  return NextResponse.json(posts)
+  const hasMore = posts.length > PAGE_SIZE
+  const items = hasMore ? posts.slice(0, PAGE_SIZE) : posts
+  const nextCursor = hasMore ? items[items.length - 1].id : null
+
+  return NextResponse.json({ posts: items, nextCursor })
 }
 
 export async function POST(
@@ -78,6 +88,10 @@ export async function POST(
   try {
     const body = await request.json()
     const { placeId, note, place } = body
+
+    if (note && note.trim().length > 500) {
+      return NextResponse.json({ error: 'Note must be 500 characters or less' }, { status: 400 })
+    }
 
     let resolvedPlaceId: string
 

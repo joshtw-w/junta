@@ -182,7 +182,7 @@ export default function MapView({ posts }: MapViewProps) {
   }
 
   return (
-    <div className="w-full h-[calc(100vh-120px)] relative">
+    <div className="w-full h-full relative" style={{ minHeight: '400px' }}>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}

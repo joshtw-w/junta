@@ -49,16 +49,21 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { name, avatar } = await request.json()
+  try {
+    const { name, avatar } = await request.json()
 
-  const user = await prisma.user.update({
-    where: { id: session.user.id },
-    data: {
-      ...(name && { name }),
-      ...(avatar !== undefined && { avatar }),
-    },
-    select: { id: true, name: true, email: true, avatar: true },
-  })
+    const user = await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        ...(name && { name }),
+        ...(avatar !== undefined && { avatar }),
+      },
+      select: { id: true, name: true, email: true, avatar: true },
+    })
 
-  return NextResponse.json(user)
+    return NextResponse.json(user)
+  } catch (error) {
+    console.error('Profile update error:', error)
+    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
+  }
 }
