@@ -171,6 +171,24 @@ export async function POST(
       },
     })
 
+    // Fire push notifications to other group members (non-blocking)
+    const members = await prisma.groupMember.findMany({
+      where: { groupId: params.id, NOT: { userId: session.user.id } },
+      select: { userId: true },
+    })
+    if (members.length > 0 && process.env.INTERNAL_SECRET) {
+      fetch(`${process.env.NEXTAUTH_URL}/api/push/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-internal-secret': process.env.INTERNAL_SECRET },
+        body: JSON.stringify({
+          userIds: members.map((m) => m.userId),
+          title: `New place in your group 📍`,
+          body: `${post.user.name} added ${post.place.name}`,
+          url: `/groups/${params.id}`,
+        }),
+      }).catch(() => {})
+    }
+
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
     console.error('Create post error:', error)

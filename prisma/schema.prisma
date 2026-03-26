@@ -14,10 +14,11 @@ model User {
   password  String
   avatar    String?
   createdAt DateTime      @default(now())
-  groups    GroupMember[]
-  posts     Post[]
-  visits    Visit[]
-  votes     Vote[]
+  groups            GroupMember[]
+  posts             Post[]
+  visits            Visit[]
+  votes             Vote[]
+  pushSubscriptions PushSubscription[]
 }
 
 model Group {
@@ -95,4 +96,14 @@ model Visit {
   @@unique([userId, postId])
   @@index([postId])
   @@index([userId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
