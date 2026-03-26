@@ -320,30 +320,32 @@ export default function GroupFeedPage() {
               >Add First Place</button>
             </div>
           ) : (
-            <div className="masonry-grid">
-              {posts.map((post) => (
-                <div key={post.id} className="masonry-item">
-                  <PostCard
-                    post={post}
-                    onClick={() => setSelectedPost(post)}
-                    isCurrentUser={post.user.id === session?.user?.id}
-                    isVisited={visitedIds.has(post.id)}
-                    voteCount={(votesByPost[post.id] || []).length}
-                  />
-                </div>
-              ))}
-            </div>
-            {nextCursor && (
-              <div className="flex justify-center py-6">
-                <button
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                  className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
-                >
-                  {loadingMore ? 'Loading...' : 'Load more'}
-                </button>
+            <>
+              <div className="masonry-grid">
+                {posts.map((post) => (
+                  <div key={post.id} className="masonry-item">
+                    <PostCard
+                      post={post}
+                      onClick={() => setSelectedPost(post)}
+                      isCurrentUser={post.user.id === session?.user?.id}
+                      isVisited={visitedIds.has(post.id)}
+                      voteCount={(votesByPost[post.id] || []).length}
+                    />
+                  </div>
+                ))}
               </div>
-            )}
+              {nextCursor && (
+                <div className="flex justify-center py-6">
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {loadingMore ? 'Loading...' : 'Load more'}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </main>
       )}
