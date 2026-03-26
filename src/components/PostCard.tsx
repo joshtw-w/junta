@@ -115,9 +115,7 @@ export default function PostCard({ post, onClick, isCurrentUser, isVisited, vote
         )}
 
         <div className="flex items-center gap-1.5 mt-2">
-          <div className="w-4 h-4 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">
-            {user.name.charAt(0).toUpperCase()}
-          </div>
+          <Avatar name={user.name} avatar={user.avatar} size={16} />
           <span className="text-xs text-slate-500 truncate">
             {isCurrentUser ? 'You' : user.name}
           </span>

@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar'
 import PostCard from '@/components/PostCard'
 import AddPostModal from '@/components/AddPostModal'
 import MapView from '@/components/MapView'
+import Avatar from '@/components/Avatar'
 
 interface Place {
   id: string
@@ -39,7 +40,7 @@ interface Group {
   description: string | null
   inviteCode: string
   _count: { posts: number; members: number }
-  members: Array<{ userId: string; role: string; user: { id: string; name: string } }>
+  members: Array<{ userId: string; role: string; user: { id: string; name: string; avatar: string | null } }>
 }
 
 interface PlaceDetails {
@@ -226,12 +227,8 @@ export default function GroupFeedPage() {
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex -space-x-1.5">
               {group.members.slice(0, 5).map((m) => (
-                <div
-                  key={m.userId}
-                  className="w-6 h-6 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 border-2 border-slate-900 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0"
-                  title={m.user.name}
-                >
-                  {m.user.name.charAt(0).toUpperCase()}
+                <div key={m.userId} className="border-2 border-slate-900 rounded-full">
+                  <Avatar name={m.user.name} avatar={m.user.avatar} size={24} />
                 </div>
               ))}
             </div>
@@ -440,19 +437,8 @@ export default function GroupFeedPage() {
                             {/* Voter avatars */}
                             <div className="flex -space-x-1.5">
                               {voters.slice(0, 5).map((voter) => (
-                                <div
-                                  key={voter.id}
-                                  className="w-6 h-6 rounded-full border-2 border-slate-800 overflow-hidden flex-shrink-0"
-                                  title={voter.name}
-                                >
-                                  {voter.avatar ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={voter.avatar} alt={voter.name} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-[9px] font-bold text-white">
-                                      {voter.name.charAt(0).toUpperCase()}
-                                    </div>
-                                  )}
+                                <div key={voter.id} className="border-2 border-slate-800 rounded-full">
+                                  <Avatar name={voter.name} avatar={voter.avatar} size={24} />
                                 </div>
                               ))}
                             </div>
@@ -515,9 +501,7 @@ export default function GroupFeedPage() {
 
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-xs font-bold text-white">
-                    {selectedPost.user.name.charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar name={selectedPost.user.name} avatar={selectedPost.user.avatar} size={28} />
                   <span className="text-sm text-slate-300">{selectedPost.user.name}</span>
                 </div>
                 <span className="text-xs text-slate-500">
