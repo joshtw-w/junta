@@ -101,15 +101,19 @@ export default function ProfilePage() {
   ]
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/profile').then((r) => r.json()),
-      fetch('/api/friends').then((r) => r.json()),
-    ]).then(([profileData, friendData]) => {
-      setProfile(profileData)
-      setNameInput(profileData.name)
-      setFriends(friendData.friends || [])
-      setPendingReceived(friendData.pendingReceived || [])
-    }).catch(() => router.push('/')).finally(() => setIsLoading(false))
+    fetch('/api/profile')
+      .then((r) => r.json())
+      .then((profileData) => {
+        setProfile(profileData)
+        setNameInput(profileData.name)
+        return fetch('/api/friends').then((r) => r.ok ? r.json() : { friends: [], pendingReceived: [], pendingSent: [] })
+      })
+      .then((friendData) => {
+        setFriends(friendData.friends || [])
+        setPendingReceived(friendData.pendingReceived || [])
+      })
+      .catch(() => router.push('/'))
+      .finally(() => setIsLoading(false))
   }, [router])
 
   const respondToRequest = async (friendshipId: string, action: 'accept' | 'decline') => {
