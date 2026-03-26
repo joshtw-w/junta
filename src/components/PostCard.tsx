@@ -1,5 +1,7 @@
 'use client'
 
+import Avatar from './Avatar'
+
 interface Place {
   id: string
   name: string
@@ -28,6 +30,7 @@ interface PostCardProps {
   onClick: () => void
   isCurrentUser: boolean
   isVisited?: boolean
+  voteCount?: number
 }
 
 // Deterministic gradient per place name so placeholders are colorful
@@ -46,7 +49,7 @@ function gradientFor(name: string): string {
   return GRADIENTS[Math.abs(hash) % GRADIENTS.length]
 }
 
-export default function PostCard({ post, onClick, isCurrentUser, isVisited }: PostCardProps) {
+export default function PostCard({ post, onClick, isCurrentUser, isVisited, voteCount = 0 }: PostCardProps) {
   const { place, user, note } = post
   const gradient = gradientFor(place.name)
 
@@ -68,14 +71,22 @@ export default function PostCard({ post, onClick, isCurrentUser, isVisited }: Po
             />
             {/* Gradient overlay — always present so text is readable */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            {/* Visited badge */}
-            {isVisited && (
-              <div className="absolute top-2 right-2 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            )}
+            {/* Badges: top-right */}
+            <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+              {voteCount > 0 && (
+                <div className="flex items-center gap-1 bg-amber-500 rounded-full px-2 py-0.5 shadow-lg">
+                  <span className="text-xs leading-none">🙋</span>
+                  <span className="text-xs font-bold text-white">{voteCount}</span>
+                </div>
+              )}
+              {isVisited && (
+                <div className="w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center shadow-lg">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+            </div>
           </>
         ) : (
           <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}>

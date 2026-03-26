@@ -66,6 +66,10 @@ export default function GroupFeedPage() {
   // Visited state
   const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set())
 
+  // Votes state: postId -> array of voters
+  const [votesByPost, setVotesByPost] = useState<Record<string, Array<{ id: string; name: string; avatar: string | null }>>>({})
+
+
   // Photo carousel state
   const [photos, setPhotos] = useState<string[]>([])
   const [placeDetails, setPlaceDetails] = useState<PlaceDetails | null>(null)
@@ -74,10 +78,11 @@ export default function GroupFeedPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [groupRes, postsRes, visitsRes] = await Promise.all([
+      const [groupRes, postsRes, visitsRes, votesRes] = await Promise.all([
         fetch(`/api/groups/${id}`),
         fetch(`/api/groups/${id}/posts`),
         fetch(`/api/visits?groupId=${id}`),
+        fetch(`/api/votes?groupId=${id}`),
       ])
       if (groupRes.ok) setGroup(await groupRes.json())
       if (postsRes.ok) setPosts(await postsRes.json())
@@ -85,6 +90,7 @@ export default function GroupFeedPage() {
         const ids: string[] = await visitsRes.json()
         setVisitedIds(new Set(ids))
       }
+      if (votesRes.ok) setVotesByPost(await votesRes.json())
     } catch (err) {
       console.error('Failed to fetch group data:', err)
     } finally {
@@ -142,6 +148,18 @@ export default function GroupFeedPage() {
   const handlePostAdded = (newPost: Post) => {
     setPosts((prev) => [newPost, ...prev])
     setShowAddModal(false)
+  }
+
+  const toggleVote = async (postId: string) => {
+    const res = await fetch('/api/votes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setVotesByPost((prev) => ({ ...prev, [postId]: data.votes.map((v: { user: { id: string; name: string; avatar: string | null } }) => v.user) }))
+    }
   }
 
   const toggleVisited = async (postId: string) => {
@@ -289,6 +307,7 @@ export default function GroupFeedPage() {
                     onClick={() => setSelectedPost(post)}
                     isCurrentUser={post.user.id === session?.user?.id}
                     isVisited={visitedIds.has(post.id)}
+                    voteCount={(votesByPost[post.id] || []).length}
                   />
                 </div>
               ))}
@@ -405,6 +424,64 @@ export default function GroupFeedPage() {
                   {visitedIds.has(selectedPost.id) ? 'Been here' : 'Mark visited'}
                 </button>
               </div>
+
+              {/* ── Vote section ── */}
+              {(() => {
+                const voters = votesByPost[selectedPost.id] || []
+                const hasVoted = voters.some((v) => v.id === session?.user?.id)
+                return (
+                  <div className="bg-slate-800/60 rounded-2xl p-3 mb-3 border border-slate-700/50">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {voters.length === 0 ? (
+                          <p className="text-slate-500 text-xs">No votes yet — be the first!</p>
+                        ) : (
+                          <>
+                            {/* Voter avatars */}
+                            <div className="flex -space-x-1.5">
+                              {voters.slice(0, 5).map((voter) => (
+                                <div
+                                  key={voter.id}
+                                  className="w-6 h-6 rounded-full border-2 border-slate-800 overflow-hidden flex-shrink-0"
+                                  title={voter.name}
+                                >
+                                  {voter.avatar ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={voter.avatar} alt={voter.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-[9px] font-bold text-white">
+                                      {voter.name.charAt(0).toUpperCase()}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-slate-300 text-xs truncate">
+                              {voters.length === 1
+                                ? `${voters[0].name} wants to go`
+                                : voters.length === 2
+                                ? `${voters[0].name} & ${voters[1].name} want to go`
+                                : `${voters[0].name} & ${voters.length - 1} others want to go`}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      {/* Vote button */}
+                      <button
+                        onClick={() => toggleVote(selectedPost.id)}
+                        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                          hasVoted
+                            ? 'bg-amber-500 text-white scale-105'
+                            : 'bg-slate-700 hover:bg-amber-500 text-slate-300 hover:text-white border border-slate-600'
+                        }`}
+                      >
+                        <span className="text-base leading-none">🙋</span>
+                        {hasVoted ? `${voters.length} want to go` : 'Want to go'}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Rating */}
               {placeDetails?.rating && (

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { useState } from 'react'
+import Avatar from './Avatar'
 
 interface NavbarProps {
   groupName?: string
@@ -50,9 +51,11 @@ export default function Navbar({ groupName, groupId }: NavbarProps) {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2.5 hover:bg-slate-800 rounded-xl px-3 py-2 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-sm font-semibold text-white">
-                {session.user.name?.charAt(0).toUpperCase() || 'U'}
-              </div>
+              <Avatar
+                name={session.user.name || 'User'}
+                avatar={session.user.avatar}
+                size={32}
+              />
               <span className="text-sm text-slate-300 hidden sm:block max-w-[120px] truncate">
                 {session.user.name}
               </span>
