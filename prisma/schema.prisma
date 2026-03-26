@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  name      String
+  password  String
+  avatar    String?
+  createdAt DateTime      @default(now())
+  groups    GroupMember[]
+  posts     Post[]
+}
+
+model Group {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  inviteCode  String        @unique
+  createdAt   DateTime      @default(now())
+  members     GroupMember[]
+  posts       Post[]
+}
+
+model GroupMember {
+  id       String   @id @default(cuid())
+  userId   String
+  groupId  String
+  role     String   @default("member")
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+}
+
+model Place {
+  id            String  @id @default(cuid())
+  name          String
+  googlePlaceId String? @unique
+  lat           Float
+  lng           Float
+  address       String
+  imageUrl      String?
+  posts         Post[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  groupId   String
+  placeId   String
+  userId    String
+  note      String?
+  createdAt DateTime @default(now())
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  place     Place    @relation(fields: [placeId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}

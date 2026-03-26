@@ -1,0 +1,168 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const membership = await prisma.groupMember.findUnique({
+    where: {
+      userId_groupId: {
+        userId: session.user.id,
+        groupId: params.id,
+      },
+    },
+  })
+
+  if (!membership) {
+    return NextResponse.json(
+      { error: 'You are not a member of this group' },
+      { status: 403 }
+    )
+  }
+
+  const posts = await prisma.post.findMany({
+    where: { groupId: params.id },
+    include: {
+      place: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
+
+  return NextResponse.json(posts)
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const membership = await prisma.groupMember.findUnique({
+    where: {
+      userId_groupId: {
+        userId: session.user.id,
+        groupId: params.id,
+      },
+    },
+  })
+
+  if (!membership) {
+    return NextResponse.json(
+      { error: 'You are not a member of this group' },
+      { status: 403 }
+    )
+  }
+
+  try {
+    const body = await request.json()
+    const { placeId, note, place } = body
+
+    let resolvedPlaceId: string
+
+    if (placeId) {
+      const existingPlace = await prisma.place.findUnique({
+        where: { id: placeId },
+      })
+      if (!existingPlace) {
+        return NextResponse.json({ error: 'Place not found' }, { status: 404 })
+      }
+      resolvedPlaceId = placeId
+    } else if (place) {
+      const { name, googlePlaceId, lat, lng, address, imageUrl } = place
+
+      if (!name || lat === undefined || lng === undefined || !address) {
+        return NextResponse.json(
+          { error: 'Place name, lat, lng, and address are required' },
+          { status: 400 }
+        )
+      }
+
+      let upsertedPlace
+      if (googlePlaceId) {
+        upsertedPlace = await prisma.place.upsert({
+          where: { googlePlaceId },
+          update: {
+            name,
+            lat,
+            lng,
+            address,
+            imageUrl: imageUrl || null,
+          },
+          create: {
+            name,
+            googlePlaceId,
+            lat,
+            lng,
+            address,
+            imageUrl: imageUrl || null,
+          },
+        })
+      } else {
+        upsertedPlace = await prisma.place.create({
+          data: {
+            name,
+            lat,
+            lng,
+            address,
+            imageUrl: imageUrl || null,
+          },
+        })
+      }
+      resolvedPlaceId = upsertedPlace.id
+    } else {
+      return NextResponse.json(
+        { error: 'Either placeId or place object is required' },
+        { status: 400 }
+      )
+    }
+
+    const post = await prisma.post.create({
+      data: {
+        groupId: params.id,
+        placeId: resolvedPlaceId,
+        userId: session.user.id,
+        note: note?.trim() || null,
+      },
+      include: {
+        place: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    })
+
+    return NextResponse.json(post, { status: 201 })
+  } catch (error) {
+    console.error('Create post error:', error)
+    return NextResponse.json(
+      { error: 'Failed to create post' },
+      { status: 500 }
+    )
+  }
+}
