@@ -170,7 +170,7 @@ export default function PublicProfilePage() {
             <div className="flex-1 min-w-0">
               <h1 className="text-white text-xl font-bold truncate">{user.name}</h1>
               <p className="text-slate-500 text-xs mt-0.5">
-                On Junta since {new Date(user.createdAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                On Juntos since {new Date(user.createdAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
               </p>
 
               {/* Stats row */}

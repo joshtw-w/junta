@@ -31,9 +31,9 @@ export default function QRModal({ inviteCode, groupName, onClose }: QRModalProps
       ctx.fillText(groupName, 200, 400)
       ctx.fillStyle = '#94a3b8'
       ctx.font = '14px Inter, sans-serif'
-      ctx.fillText('Scan to join on Junta', 200, 430)
+      ctx.fillText('Scan to join on Juntos', 200, 430)
       const a = document.createElement('a')
-      a.download = `junta-${groupName.toLowerCase().replace(/\s+/g, '-')}.png`
+      a.download = `juntos-${groupName.toLowerCase().replace(/\s+/g, '-')}.png`
       a.href = canvas.toDataURL('image/png')
       a.click()
     }

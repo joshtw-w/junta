@@ -151,7 +151,7 @@ export default function JoinGroupPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             </svg>
           </div>
-          <span className="text-lg font-bold text-white">Junta</span>
+          <span className="text-lg font-bold text-white">Juntos</span>
         </div>
 
         <div className="text-center mb-6">

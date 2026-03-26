@@ -36,7 +36,7 @@ export default function Navbar({ groupName, groupId }: NavbarProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <span className="font-bold text-white text-lg tracking-tight">Junta</span>
+            <span className="font-bold text-white text-lg tracking-tight">Juntos</span>
           </Link>
 
           {groupName && groupId && (

@@ -128,7 +128,7 @@ function HomePageInner() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">Junta</span>
+            <span className="text-2xl font-bold text-white tracking-tight">Juntos</span>
           </div>
         </div>
 
@@ -159,7 +159,7 @@ function HomePageInner() {
         </div>
 
         <div className="relative text-teal-200/50 text-sm">
-          © 2024 Junta. Plan together, travel better.
+          © 2024 Juntos. Plan together, travel better.
         </div>
       </div>
 
@@ -173,7 +173,7 @@ function HomePageInner() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-white">Junta</span>
+            <span className="text-xl font-bold text-white">Juntos</span>
           </div>
 
           <h2 className="text-2xl font-bold text-white mb-2">
