@@ -319,9 +319,14 @@ export default function GroupFeedPage() {
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex -space-x-1.5">
               {group.members.slice(0, 5).map((m) => (
-                <div key={m.userId} className="border-2 border-slate-900 rounded-full">
+                <Link
+                  key={m.userId}
+                  href={m.userId === session?.user?.id ? '/profile' : `/profile/${m.userId}`}
+                  className="border-2 border-slate-900 rounded-full hover:z-10 hover:scale-110 transition-transform relative"
+                  title={m.user.name}
+                >
                   <Avatar name={m.user.name} avatar={m.user.avatar} size={24} />
-                </div>
+                </Link>
               ))}
             </div>
             <span className="text-xs text-slate-500 truncate">
@@ -633,10 +638,14 @@ export default function GroupFeedPage() {
               )}
 
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
+                <Link
+                  href={selectedPost.user.id === session?.user?.id ? '/profile' : `/profile/${selectedPost.user.id}`}
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  onClick={() => setSelectedPost(null)}
+                >
                   <Avatar name={selectedPost.user.name} avatar={selectedPost.user.avatar} size={28} />
                   <span className="text-sm text-slate-300">{selectedPost.user.name}</span>
-                </div>
+                </Link>
                 <span className="text-xs text-slate-500">
                   {new Date(selectedPost.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>

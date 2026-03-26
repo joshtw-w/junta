@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
+import Avatar from '@/components/Avatar'
 
 // Resize an image file to a square, return base64 JPEG
 function resizeImage(file: File, size = 200): Promise<string> {
@@ -84,7 +85,9 @@ export default function ProfilePage() {
   const router = useRouter()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'visited' | 'added'>('visited')
+  const [activeTab, setActiveTab] = useState<'visited' | 'added' | 'friends'>('visited')
+  const [friends, setFriends] = useState<{ id: string; name: string; avatar: string | null; friendshipId: string }[]>([])
+  const [pendingReceived, setPendingReceived] = useState<{ id: string; name: string; avatar: string | null; friendshipId: string }[]>([])
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const [saving, setSaving] = useState(false)
@@ -98,12 +101,38 @@ export default function ProfilePage() {
   ]
 
   useEffect(() => {
-    fetch('/api/profile')
-      .then((r) => r.json())
-      .then((data) => { setProfile(data); setNameInput(data.name) })
-      .catch(() => router.push('/'))
-      .finally(() => setIsLoading(false))
+    Promise.all([
+      fetch('/api/profile').then((r) => r.json()),
+      fetch('/api/friends').then((r) => r.json()),
+    ]).then(([profileData, friendData]) => {
+      setProfile(profileData)
+      setNameInput(profileData.name)
+      setFriends(friendData.friends || [])
+      setPendingReceived(friendData.pendingReceived || [])
+    }).catch(() => router.push('/')).finally(() => setIsLoading(false))
   }, [router])
+
+  const respondToRequest = async (friendshipId: string, action: 'accept' | 'decline') => {
+    await fetch('/api/friends', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ friendshipId, action }),
+    })
+    if (action === 'accept') {
+      const person = pendingReceived.find((p) => p.friendshipId === friendshipId)
+      if (person) setFriends((prev) => [...prev, person])
+    }
+    setPendingReceived((prev) => prev.filter((p) => p.friendshipId !== friendshipId))
+  }
+
+  const unfriend = async (userId: string) => {
+    await fetch('/api/friends', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    })
+    setFriends((prev) => prev.filter((f) => f.id !== userId))
+  }
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -259,65 +288,118 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Pending friend requests */}
+        {pendingReceived.length > 0 && (
+          <div className="bg-teal-900/20 border border-teal-700/30 rounded-2xl p-4 mb-4">
+            <p className="text-teal-400 text-xs font-semibold uppercase tracking-wide mb-3">Friend requests ({pendingReceived.length})</p>
+            <div className="space-y-3">
+              {pendingReceived.map((person) => (
+                <div key={person.friendshipId} className="flex items-center gap-3">
+                  <Avatar name={person.name} avatar={person.avatar} size={36} />
+                  <p className="text-white text-sm font-medium flex-1">{person.name}</p>
+                  <button
+                    onClick={() => respondToRequest(person.friendshipId, 'accept')}
+                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-medium transition-colors"
+                  >Accept</button>
+                  <button
+                    onClick={() => respondToRequest(person.friendshipId, 'decline')}
+                    className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-medium transition-colors"
+                  >Decline</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex bg-slate-800 rounded-xl p-1 mb-4 border border-slate-700">
           <button
             onClick={() => setActiveTab('visited')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'visited' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors ${activeTab === 'visited' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
           >
-            Been here ({profile._count.visits})
+            Visited ({profile._count.visits})
           </button>
           <button
             onClick={() => setActiveTab('added')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'added' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors ${activeTab === 'added' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
           >
             Added ({profile._count.posts})
           </button>
+          <button
+            onClick={() => setActiveTab('friends')}
+            className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors ${activeTab === 'friends' ? 'bg-teal-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            Friends ({friends.length})
+          </button>
         </div>
 
-        {/* Place list */}
-        {displayPosts.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-slate-500 text-sm">
-              {activeTab === 'visited'
-                ? "You haven't marked any places as visited yet."
-                : "You haven't added any places yet."}
-            </p>
-          </div>
+        {/* Friends tab */}
+        {activeTab === 'friends' ? (
+          friends.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-4xl mb-3">👥</p>
+              <p className="text-slate-400 text-sm">No friends yet</p>
+              <p className="text-slate-500 text-xs mt-1">Tap a member&apos;s avatar in any group to add them</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {friends.map((f) => (
+                <Link
+                  key={f.id}
+                  href={`/profile/${f.id}`}
+                  className="flex items-center gap-3 bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 hover:bg-slate-800 transition-colors"
+                >
+                  <Avatar name={f.name} avatar={f.avatar} size={40} />
+                  <p className="text-white text-sm font-medium flex-1">{f.name}</p>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          )
         ) : (
-          <div className="space-y-3">
-            {displayPosts.map((post) => (
-              <Link
-                key={post.id}
-                href={`/groups/${post.group.id}`}
-                className="flex items-center gap-3 bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-teal-500/40 rounded-2xl p-3 transition-all group"
-              >
-                {/* Thumbnail */}
-                <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-slate-700">
-                  {post.place.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.place.imageUrl} alt={post.place.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-teal-800 to-slate-700 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-teal-300/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white text-sm group-hover:text-teal-300 transition-colors line-clamp-1">{post.place.name}</p>
-                  <p className="text-slate-500 text-xs line-clamp-1 mt-0.5">{post.place.address}</p>
-                  <p className="text-teal-600 text-xs mt-1">{post.group.name}</p>
-                </div>
-
-                <svg className="w-4 h-4 text-slate-600 group-hover:text-teal-400 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            ))}
-          </div>
+          /* Place list */
+          displayPosts.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-slate-500 text-sm">
+                {activeTab === 'visited'
+                  ? "You haven't marked any places as visited yet."
+                  : "You haven't added any places yet."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {displayPosts.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/groups/${post.group.id}`}
+                  className="flex items-center gap-3 bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-teal-500/40 rounded-2xl p-3 transition-all group"
+                >
+                  <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-slate-700">
+                    {post.place.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={post.place.imageUrl} alt={post.place.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-teal-800 to-slate-700 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-teal-300/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm group-hover:text-teal-300 transition-colors line-clamp-1">{post.place.name}</p>
+                    <p className="text-slate-500 text-xs line-clamp-1 mt-0.5">{post.place.address}</p>
+                    <p className="text-teal-600 text-xs mt-1">{post.group.name}</p>
+                  </div>
+                  <svg className="w-4 h-4 text-slate-600 group-hover:text-teal-400 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          )
         )}
       </main>
     </div>
